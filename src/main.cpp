@@ -1,5 +1,10 @@
+#include "ShaderProgram.hpp"
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+
+#include <iostream>
+#include <stdexcept>
 
 int main(int argc, char* argv[])
 {
@@ -11,7 +16,7 @@ int main(int argc, char* argv[])
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
-  GLFWwindow* window = glfwCreateWindow(800, 600, "SimlpeGL", nullptr, nullptr);
+  GLFWwindow* window = glfwCreateWindow(800, 600, "SimpleGL", nullptr, nullptr);
   if (!window) {
     glfwTerminate();
     return -1;
@@ -20,6 +25,15 @@ int main(int argc, char* argv[])
   glfwMakeContextCurrent(window);
 
   if(!gladLoadGL()) {
+    glfwTerminate();
+    return -1;
+  }
+
+  ShaderProgram shader;
+  try {
+    shader.load("assets/shaders/basic.vertex.glsl", "assets/shaders/basic.fragment.glsl");
+  } catch (const std::runtime_error& re) {
+    std::cerr << re.what() << std::endl;
     glfwTerminate();
     return -1;
   }
@@ -34,7 +48,7 @@ int main(int argc, char* argv[])
       glfwSetWindowShouldClose(window, GL_TRUE);
     }
 
-    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
     glfwSwapBuffers(window);

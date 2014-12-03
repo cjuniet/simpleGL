@@ -8,7 +8,10 @@ if(NOT MSVC)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++11")
 endif()
 
-set(SOURCES src/main.cpp)
+# Source Files
+set(SOURCES src/main.cpp
+    src/ShaderProgram.hpp src/ShaderProgram.cpp
+)
 
 # OpenGL
 find_package(OpenGL REQUIRED)
