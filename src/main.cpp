@@ -24,7 +24,7 @@ int main(int argc, char* argv[])
 
   glfwMakeContextCurrent(window);
 
-  if(!gladLoadGL()) {
+  if (!gladLoadGL()) {
     glfwTerminate();
     return -1;
   }
