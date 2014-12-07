@@ -61,24 +61,49 @@ void main_loop(GLFWwindow* window)
   const float ratio = (float)width / height;
   const glm::mat4 proj_matrix = glm::ortho<float>(-ratio, ratio, -1, 1);
 
-  Shape shape(GL_TRIANGLE_FAN, Shape::VEC2_COL3,
-  {
-    -0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
-    0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
-    0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
-    -0.5f, 0.5f, 1.0f, 1.0f, 1.0f
+  Shape shape1(GL_TRIANGLE_FAN, Shape::VEC2_COL3, {
+     0.0f,  0.0f, 1.0f, 1.0f, 1.0f,
+    -0.3f, -0.3f, 1.0f, 0.0f, 0.0f,
+     0.3f, -0.3f, 1.0f, 0.5f, 0.0f,
+     0.2f,  0.0f, 1.0f, 0.5f, 0.5f,
+     0.3f,  0.3f, 1.0f, 0.5f, 0.5f,
+    -0.3f,  0.3f, 1.0f, 0.0f, 0.5f,
+    -0.2f,  0.0f, 1.0f, 0.0f, 0.5f,
+    -0.3f, -0.3f, 1.0f, 0.0f, 0.0f
   });
+  shape1.set_position(-0.25f, 0.5f);
+  shape1.rotate(0.5f);
 
-  Shader shape_shader;
-  shape_shader.load("assets/shaders/basic.vertex", "assets/shaders/basic.fragment");
+  Shape shape2(GL_TRIANGLE_FAN, Shape::VEC2_COL3, {
+    -0.2f, -0.2f, 0.0f, 0.0f, 1.0f,
+     0.2f, -0.2f, 0.0f, 0.5f, 1.0f,
+     0.2f,  0.2f, 0.5f, 0.5f, 1.0f,
+    -0.2f,  0.2f, 0.5f, 0.0f, 1.0f
+  });
+  shape2.set_position(0.5f, -0.25f);
+  shape2.rotate(-0.25f);
+
+  Shape shape3(GL_TRIANGLE_FAN, Shape::VEC2_COL3, {
+    -0.1f, -0.1f, 0.0f, 1.0f, 0.0f,
+     0.0f, -0.125f, 0.5f, 1.0f, 0.0f,
+     0.1f, -0.1f, 0.5f, 1.0f, 0.5f,
+     0.125f, 0.0f, 0.0f, 1.0f, 0.5f,
+     0.1f,  0.1f, 0.0f, 1.0f, 0.5f,
+     0.0f,  0.125f, 0.5f, 1.0f, 0.5f,
+    -0.1f,  0.1f, 0.5f, 1.0f, 0.0f,
+    -0.125f, 0.0f, 0.0f, 1.0f, 0.0f
+  });
+  shape3.set_position(-0.5f, -0.75f);
+  shape3.rotate(0.1f);
+
+  Shader shape_shader("assets/shaders/basic.vertex", "assets/shaders/basic.fragment");
   shape_shader.attach();
   shape_shader.set_uniform("proj", proj_matrix);
   shape_shader.detach();
 
   Shape cursor(GL_POINTS, Shape::VEC2, { 0.0f, 0.0f });
 
-  Shader cursor_shader;
-  cursor_shader.load("assets/shaders/cursor.vertex", "assets/shaders/cursor.fragment");
+  Shader cursor_shader("assets/shaders/cursor.vertex", "assets/shaders/cursor.fragment");
   cursor_shader.attach();
   cursor_shader.set_uniform("proj", proj_matrix);
   cursor_shader.detach();
@@ -91,10 +116,13 @@ void main_loop(GLFWwindow* window)
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    shape.rotate(0.01f);
     shape_shader.attach();
-    shape_shader.set_uniform("model", shape.get_transform());
-    shape.draw();
+    shape_shader.set_uniform("model", shape1.get_transform());
+    shape1.draw();
+    shape_shader.set_uniform("model", shape2.get_transform());
+    shape2.draw();
+    shape_shader.set_uniform("model", shape3.get_transform());
+    shape3.draw();
     shape_shader.detach();
 
     const float cx = ratio * (2 * (float)xpos / width - 1);

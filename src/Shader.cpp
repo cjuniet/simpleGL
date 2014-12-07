@@ -34,11 +34,13 @@ void compile_glsl(const std::string& filename, GLuint shader)
 }
 }
 
-Shader::Shader()
+Shader::Shader(const std::string& vertex_file, const std::string& fragment_file)
   : _vertex(glCreateShader(GL_VERTEX_SHADER)),
     _fragment(glCreateShader(GL_FRAGMENT_SHADER)),
     _program(glCreateProgram())
-{}
+{
+  load(vertex_file, fragment_file);
+}
 
 Shader::~Shader()
 {
