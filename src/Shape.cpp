@@ -13,18 +13,19 @@ Shape::Shape(GLenum mode, Type type, const std::vector<GLfloat>& vertices)
 
   switch (_type) {
     case Type::VEC2:
-      glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
+      glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
       glEnableVertexAttribArray(0);
       _nb_vertices = (GLsizei)_vertices.size() / 2;
+      break;
     case Type::VEC2_COL3:
-      glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), nullptr);
+      glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
       glEnableVertexAttribArray(0);
       glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(2 * sizeof(GLfloat)));
       glEnableVertexAttribArray(1);
       _nb_vertices = (GLsizei)_vertices.size() / 5;
       break;
     case Type::VEC2_COL3_TEX2:
-      glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 7 * sizeof(GLfloat), nullptr);
+      glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 7 * sizeof(GLfloat), (GLvoid*)0);
       glEnableVertexAttribArray(0);
       glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 7 * sizeof(GLfloat), (GLvoid*)(2 * sizeof(GLfloat)));
       glEnableVertexAttribArray(1);

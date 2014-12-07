@@ -4,11 +4,11 @@
 #include <glm/glm.hpp>
 #include <string>
 
-class ShaderProgram
+class Shader
 {
 public:
-  ShaderProgram();
-  ~ShaderProgram();
+  Shader();
+  ~Shader();
 
   void load(const std::string& vertex_file, const std::string& fragment_file);
 

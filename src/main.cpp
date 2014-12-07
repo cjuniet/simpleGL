@@ -1,4 +1,4 @@
-#include "ShaderProgram.hpp"
+#include "Shader.hpp"
 #include "Shape.hpp"
 
 #include <glad/glad.h>
@@ -10,7 +10,7 @@
 #include <iostream>
 #include <stdexcept>
 
-std::ofstream Logger("out.txt");
+#define Logger std::cerr
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void main_loop(GLFWwindow* window);
 
@@ -58,14 +58,8 @@ void main_loop(GLFWwindow* window)
   glfwGetFramebufferSize(window, &width, &height);
   glViewport(0, 0, width, height);
 
-  ShaderProgram shader;
-  shader.load("assets/shaders/basic.vertex.glsl", "assets/shaders/basic.fragment.glsl");
-
   const float ratio = (float)width / height;
   const glm::mat4 proj_matrix = glm::ortho<float>(-ratio, ratio, -1, 1);
-  shader.attach();
-  shader.set_uniform("proj", proj_matrix);
-  shader.detach();
 
   Shape shape(GL_TRIANGLE_FAN, Shape::VEC2_COL3,
   {
@@ -75,7 +69,19 @@ void main_loop(GLFWwindow* window)
     -0.5f, 0.5f, 1.0f, 1.0f, 1.0f
   });
 
-  Shape cursor(GL_POINTS, Shape::VEC2_COL3, { 0.0f, 0.0f, 1.0f, 1.0f, 1.0f });
+  Shader shape_shader;
+  shape_shader.load("assets/shaders/basic.vertex", "assets/shaders/basic.fragment");
+  shape_shader.attach();
+  shape_shader.set_uniform("proj", proj_matrix);
+  shape_shader.detach();
+
+  Shape cursor(GL_POINTS, Shape::VEC2, { 0.0f, 0.0f });
+
+  Shader cursor_shader;
+  cursor_shader.load("assets/shaders/cursor.vertex", "assets/shaders/cursor.fragment");
+  cursor_shader.attach();
+  cursor_shader.set_uniform("proj", proj_matrix);
+  cursor_shader.detach();
 
   double xpos, ypos;
   while (!glfwWindowShouldClose(window)) {
@@ -85,17 +91,19 @@ void main_loop(GLFWwindow* window)
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    shader.attach();
-
     shape.rotate(0.01f);
-    shader.set_uniform("model", shape.get_transform());
+    shape_shader.attach();
+    shape_shader.set_uniform("model", shape.get_transform());
     shape.draw();
+    shape_shader.detach();
 
-    cursor.set_position(ratio*(2 * (float)xpos / width - 1), -(2 * (float)ypos / height - 1));
-    shader.set_uniform("model", cursor.get_transform());
+    const float cx = ratio * (2 * (float)xpos / width - 1);
+    const float cy = -(2 * (float)ypos / height - 1);
+    cursor.set_position(cx, cy);
+    cursor_shader.attach();
+    cursor_shader.set_uniform("model", cursor.get_transform());
     cursor.draw();
-
-    shader.detach();
+    cursor_shader.detach();
 
     glfwSwapBuffers(window);
   }
@@ -108,6 +116,6 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
   }
 
   if (key == GLFW_KEY_SPACE && action != GLFW_REPEAT) {
-      glPolygonMode(GL_FRONT_AND_BACK, action == GLFW_PRESS ? GL_LINE : GL_FILL);
+    glPolygonMode(GL_FRONT_AND_BACK, action == GLFW_PRESS ? GL_LINE : GL_FILL);
   }
 }

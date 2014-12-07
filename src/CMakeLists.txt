@@ -5,7 +5,7 @@ endif()
 
 set(SOURCES
   main.cpp
-  ShaderProgram.hpp ShaderProgram.cpp
+  Shader.hpp Shader.cpp
   Shape.hpp Shape.cpp
 )
 

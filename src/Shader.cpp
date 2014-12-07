@@ -1,4 +1,4 @@
-#include "ShaderProgram.hpp"
+#include "Shader.hpp"
 
 #include <glm/gtc/type_ptr.hpp>
 
@@ -29,25 +29,25 @@ void compile_glsl(const std::string& filename, GLuint shader)
   if (!success) {
     char buf[512];
     glGetShaderInfoLog(shader, sizeof(buf), nullptr, buf);
-    throw std::runtime_error(std::string("compile_glsl(): ") + buf);
+    throw std::runtime_error("compile_glsl('" + filename + "'): " + buf);
   }
 }
 }
 
-ShaderProgram::ShaderProgram()
+Shader::Shader()
   : _vertex(glCreateShader(GL_VERTEX_SHADER)),
     _fragment(glCreateShader(GL_FRAGMENT_SHADER)),
     _program(glCreateProgram())
 {}
 
-ShaderProgram::~ShaderProgram()
+Shader::~Shader()
 {
   glDeleteShader(_vertex);
   glDeleteShader(_fragment);
   glDeleteProgram(_program);
 }
 
-void ShaderProgram::load(const std::string& vertex_file, const std::string& fragment_file)
+void Shader::load(const std::string& vertex_file, const std::string& fragment_file)
 {
   compile_glsl(vertex_file, _vertex);
   compile_glsl(fragment_file, _fragment);
@@ -65,22 +65,22 @@ void ShaderProgram::load(const std::string& vertex_file, const std::string& frag
   }
 }
 
-void ShaderProgram::attach() const
+void Shader::attach() const
 {
   glUseProgram(_program);
 }
 
-void ShaderProgram::detach() const
+void Shader::detach() const
 {
   glUseProgram(0);
 }
 
-void ShaderProgram::set_uniform(const GLchar* name, GLfloat value) const
+void Shader::set_uniform(const GLchar* name, GLfloat value) const
 {
   glUniform1f(glGetUniformLocation(_program, name), value);
 }
 
-void ShaderProgram::set_uniform(const GLchar* name, const glm::mat4& value) const
+void Shader::set_uniform(const GLchar* name, const glm::mat4& value) const
 {
   glUniformMatrix4fv(glGetUniformLocation(_program, name), 1, GL_FALSE, glm::value_ptr(value));
 }
