@@ -1,5 +1,7 @@
 #include "ShaderProgram.hpp"
 
+#include <glm/gtc/type_ptr.hpp>
+
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
@@ -38,6 +40,13 @@ ShaderProgram::ShaderProgram()
     _program(glCreateProgram())
 {}
 
+ShaderProgram::~ShaderProgram()
+{
+  glDeleteShader(_vertex);
+  glDeleteShader(_fragment);
+  glDeleteProgram(_program);
+}
+
 void ShaderProgram::load(const std::string& vertex_file, const std::string& fragment_file)
 {
   compile_glsl(vertex_file, _vertex);
@@ -56,14 +65,22 @@ void ShaderProgram::load(const std::string& vertex_file, const std::string& frag
   }
 }
 
-ShaderProgram::~ShaderProgram()
-{
-  glDeleteShader(_vertex);
-  glDeleteShader(_fragment);
-  glDeleteProgram(_program);
-}
-
-void ShaderProgram::use() const
+void ShaderProgram::attach() const
 {
   glUseProgram(_program);
+}
+
+void ShaderProgram::detach() const
+{
+  glUseProgram(0);
+}
+
+void ShaderProgram::set_uniform(const GLchar* name, GLfloat value) const
+{
+  glUniform1f(glGetUniformLocation(_program, name), value);
+}
+
+void ShaderProgram::set_uniform(const GLchar* name, const glm::mat4& value) const
+{
+  glUniformMatrix4fv(glGetUniformLocation(_program, name), 1, GL_FALSE, glm::value_ptr(value));
 }

@@ -6,6 +6,7 @@ endif()
 set(SOURCES
   main.cpp
   ShaderProgram.hpp ShaderProgram.cpp
+  Shape.hpp Shape.cpp
 )
 
 set(SOURCES ${SOURCES} "${CMAKE_SOURCE_DIR}/ext/glad/src/glad.c")
