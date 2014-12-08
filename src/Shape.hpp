@@ -18,6 +18,8 @@ public:
   glm::mat4 get_transform() const;
   void reset_transform();
 
+  std::vector<glm::vec2> get_world_vertices() const;
+
   void set_origin(float x, float y);
   void set_position(float x, float y);
   void set_rotation(float angle);

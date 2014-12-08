@@ -6,5 +6,5 @@ uniform float time;
 
 void main()
 {
-    color = abs(sin(6*time)) * vec4(1.0f, 1.0f, 1.0f, 1.0f);
+    color = abs(cos(6*time)) * vec4(1.0f, 1.0f, 1.0f, 1.0f);
 }

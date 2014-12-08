@@ -127,6 +127,11 @@ void main_loop(GLFWwindow* window)
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
+    shape1.rotate(0.01f);
+    shape2.rotate(0.01f);
+    shape3.rotate(0.01f);
+    cursor_shader.set_uniform("time", glfwGetTime());
+
     shape_shader.attach();
     shape_shader.set_uniform("model", shape1.get_transform());
     shape1.draw();
@@ -139,9 +144,35 @@ void main_loop(GLFWwindow* window)
     cursor_shader.attach();
     cursor.translate(dx, dy);
     cursor.clamp_position(-ratio, ratio, -1.0f, 1.0f);
-    cursor_shader.set_uniform("time", glfwGetTime());
     cursor_shader.set_uniform("model", cursor.get_transform());
     cursor.draw();
+    cursor_shader.detach();
+
+    const glm::vec2 pointer = cursor.get_world_vertices().front();
+    std::vector<GLfloat> coords;
+    for (auto v : shape1.get_world_vertices()) {
+      coords.push_back(pointer.x);
+      coords.push_back(pointer.y);
+      coords.push_back(v.x);
+      coords.push_back(v.y);
+    }
+    for (auto v : shape2.get_world_vertices()) {
+      coords.push_back(pointer.x);
+      coords.push_back(pointer.y);
+      coords.push_back(v.x);
+      coords.push_back(v.y);
+    }
+    for (auto v : shape3.get_world_vertices()) {
+      coords.push_back(pointer.x);
+      coords.push_back(pointer.y);
+      coords.push_back(v.x);
+      coords.push_back(v.y);
+    }
+
+    Shape rays(GL_LINES, Shape::VEC2, coords);
+    cursor_shader.attach();
+    cursor_shader.set_uniform("model", rays.get_transform());
+    rays.draw();
     cursor_shader.detach();
 
     glfwSwapBuffers(window);

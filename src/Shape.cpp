@@ -1,6 +1,17 @@
 #include "Shape.hpp"
 #include <glm/gtc/matrix_transform.hpp>
 
+namespace {
+  size_t get_stride(Shape::Type type)
+  {
+    switch (type) {
+      case Shape::Type::VEC2:           return 2;
+      case Shape::Type::VEC2_COL3:      return 5;
+      case Shape::Type::VEC2_COL3_TEX2: return 7;
+    }
+  }
+}
+
 Shape::Shape(GLenum mode, Type type, const std::vector<GLfloat>& vertices)
   : _mode(mode), _type(type), _vertices(vertices),
     _scale(1.0f, 1.0f), _need_update(false)
@@ -68,6 +79,19 @@ void Shape::reset_transform()
 {
   _need_update = false;
   _transform = glm::mat4();
+}
+
+std::vector<glm::vec2> Shape::get_world_vertices() const
+{
+  std::vector<glm::vec2> vertices;
+  const glm::mat4 model = get_transform();
+  const size_t stride = get_stride(_type);
+  for (size_t i = 0; i < _vertices.size(); i += stride) {
+    glm::vec4 point(_vertices[i], _vertices[i+1], 0.0f, 1.0f);
+    point = model * point;
+    vertices.push_back(glm::vec2(point.x, point.y));
+  }
+  return vertices;
 }
 
 void Shape::set_origin(float x, float y)
