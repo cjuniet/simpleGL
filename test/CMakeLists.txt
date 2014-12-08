@@ -1,7 +1,14 @@
-include_directories(${gtest_SOURCE_DIR}/include)
+include_directories("${gtest_SOURCE_DIR}/include")
+include_directories("${CMAKE_SOURCE_DIR}/src")
+
+if(NOT MSVC)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++11")
+  add_definitions("-DGLM_FORCE_RADIANS")
+endif()
 
 set(TEST_SOURCES
   InitTest.cpp
+  SortByAngleTest.cpp ../src/Geometry.hpp ../src/Geometry.cpp
 )
 
 add_executable(test_driver ${TEST_SOURCES})

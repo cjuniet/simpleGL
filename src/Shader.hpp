@@ -14,6 +14,7 @@ public:
   void detach() const;
 
   void set_uniform(const GLchar* name, GLfloat value) const;
+  void set_uniform(const GLchar* name, const glm::vec4& value) const;
   void set_uniform(const GLchar* name, const glm::mat4& value) const;
 
 private:

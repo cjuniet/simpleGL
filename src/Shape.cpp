@@ -1,5 +1,6 @@
 #include "Shape.hpp"
 #include <glm/gtc/matrix_transform.hpp>
+#include <algorithm>
 
 namespace {
   size_t get_stride(Shape::Type type)
@@ -9,12 +10,30 @@ namespace {
       case Shape::Type::VEC2_COL3:      return 5;
       case Shape::Type::VEC2_COL3_TEX2: return 7;
     }
+    return 0;
   }
+}
+
+Shape::Shape(GLenum mode, const std::vector<glm::vec2>& vertices)
+  : _mode(mode), _type(Type::VEC2),
+    _scale(1.0f, 1.0f), _rotation(0), _need_update(false)
+{
+  _vertices.reserve(2 * vertices.size());
+  for (const auto& v : vertices) {
+    _vertices.push_back(v.x);
+    _vertices.push_back(v.y);
+  }
+  init_vao();
 }
 
 Shape::Shape(GLenum mode, Type type, const std::vector<GLfloat>& vertices)
   : _mode(mode), _type(type), _vertices(vertices),
-    _scale(1.0f, 1.0f), _need_update(false)
+    _scale(1.0f, 1.0f), _rotation(0), _need_update(false)
+{
+  init_vao();
+}
+
+void Shape::init_vao()
 {
   glGenVertexArrays(1, &_VAO);
   glBindVertexArray(_VAO);
@@ -27,14 +46,14 @@ Shape::Shape(GLenum mode, Type type, const std::vector<GLfloat>& vertices)
     case Type::VEC2:
       glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
       glEnableVertexAttribArray(0);
-      _nb_vertices = (GLsizei)_vertices.size() / 2;
+      _nb_vertices = _vertices.size() / 2;
       break;
     case Type::VEC2_COL3:
       glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
       glEnableVertexAttribArray(0);
       glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(2 * sizeof(GLfloat)));
       glEnableVertexAttribArray(1);
-      _nb_vertices = (GLsizei)_vertices.size() / 5;
+      _nb_vertices = _vertices.size() / 5;
       break;
     case Type::VEC2_COL3_TEX2:
       glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 7 * sizeof(GLfloat), (GLvoid*)0);
@@ -43,7 +62,7 @@ Shape::Shape(GLenum mode, Type type, const std::vector<GLfloat>& vertices)
       glEnableVertexAttribArray(1);
       glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 7 * sizeof(GLfloat), (GLvoid*)(5 * sizeof(GLfloat)));
       glEnableVertexAttribArray(2);
-      _nb_vertices = (GLsizei)_vertices.size() / 7;
+      _nb_vertices = _vertices.size() / 7;
       break;
   }
 
@@ -56,10 +75,22 @@ Shape::~Shape()
   glDeleteVertexArrays(1, &_VAO);
 }
 
+size_t Shape::nb_vertices() const
+{
+  return _nb_vertices;
+}
+
 void Shape::draw() const
 {
   glBindVertexArray(_VAO);
-  glDrawArrays(_mode, 0, _nb_vertices);
+  glDrawArrays(_mode, 0, (GLsizei)_nb_vertices);
+  glBindVertexArray(0);
+}
+
+void Shape::draw(GLenum mode, GLint first, GLsizei count) const
+{
+  glBindVertexArray(_VAO);
+  glDrawArrays(mode, first, count);
   glBindVertexArray(0);
 }
 

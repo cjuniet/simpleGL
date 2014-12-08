@@ -14,7 +14,6 @@ add_subdirectory("${CMAKE_SOURCE_DIR}/ext/glfw")
 add_subdirectory("${CMAKE_SOURCE_DIR}/ext/gtest")
 
 # Executable and UTests
-include_directories("${OPENGL_INCLUDE_DIR}")
 include_directories("${CMAKE_SOURCE_DIR}/ext/glad/include")
 include_directories("${CMAKE_SOURCE_DIR}/ext/glfw/include")
 include_directories("${CMAKE_SOURCE_DIR}/ext/glm")

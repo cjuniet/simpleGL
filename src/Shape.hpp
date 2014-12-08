@@ -10,10 +10,14 @@ public:
   enum Type { VEC2, VEC2_COL3, VEC2_COL3_TEX2 };
 
 public:
+  Shape(GLenum mode, const std::vector<glm::vec2>& vertices);
   Shape(GLenum mode, Type type, const std::vector<GLfloat>& vertices);
   ~Shape();
 
+  size_t nb_vertices() const;
+
   void draw() const;
+  void draw(GLenum mode, GLint first, GLsizei count) const;
 
   glm::mat4 get_transform() const;
   void reset_transform();
@@ -32,12 +36,15 @@ public:
   void clamp_position(float xmin, float xmax, float ymin, float ymax);
 
 private:
+  void init_vao();
+
+private:
   GLuint _VAO;
   GLuint _VBO;
   const GLint _mode;
   const Type _type;
   std::vector<GLfloat> _vertices;
-  GLsizei _nb_vertices;
+  size_t _nb_vertices;
 
   glm::vec2 _origin;
   glm::vec2 _position;
