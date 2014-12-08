@@ -33,7 +33,7 @@ int main(int argc, char* argv[])
 
   glfwMakeContextCurrent(window);
   glfwSetKeyCallback(window, key_callback);
-  glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+  glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
   if (!gladLoadGL()) {
     glfwTerminate();
@@ -101,17 +101,28 @@ void main_loop(GLFWwindow* window)
   shape_shader.set_uniform("proj", proj_matrix);
   shape_shader.detach();
 
-  Shape cursor(GL_POINTS, Shape::VEC2, { 0.0f, 0.0f });
+  Shape cursor(GL_POINTS, Shape::VEC2, { 0.0f, 0.0f,
+    0.01f, 0.0f, -0.01f, 0.0f,
+    0.0f, 0.01f, 0.0f, -0.01f
+  });
+  glPointSize(2.0f);
 
   Shader cursor_shader("assets/shaders/cursor.vertex", "assets/shaders/cursor.fragment");
   cursor_shader.attach();
   cursor_shader.set_uniform("proj", proj_matrix);
   cursor_shader.detach();
 
-  double xpos, ypos;
+  double xpos, ypos, oldxpos, oldypos;
+  xpos = ypos = oldxpos = oldypos = 0;
+  glfwSetCursorPos(window, xpos, ypos);
+
   while (!glfwWindowShouldClose(window)) {
     glfwPollEvents();
+
     glfwGetCursorPos(window, &xpos, &ypos);
+    const float dx = 2.0f * (xpos - oldxpos) / width;
+    const float dy = 2.0f * (oldypos - ypos) / height;
+    oldxpos = xpos; oldypos = ypos;
 
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -125,10 +136,10 @@ void main_loop(GLFWwindow* window)
     shape3.draw();
     shape_shader.detach();
 
-    const float cx = ratio * (2 * (float)xpos / width - 1);
-    const float cy = -(2 * (float)ypos / height - 1);
-    cursor.set_position(cx, cy);
     cursor_shader.attach();
+    cursor.translate(dx, dy);
+    cursor.clamp_position(-ratio, ratio, -1.0f, 1.0f);
+    cursor_shader.set_uniform("time", glfwGetTime());
     cursor_shader.set_uniform("model", cursor.get_transform());
     cursor.draw();
     cursor_shader.detach();

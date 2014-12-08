@@ -2,7 +2,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 Shape::Shape(GLenum mode, Type type, const std::vector<GLfloat>& vertices)
-  : _mode(mode), _type(type), _vertices(vertices)
+  : _mode(mode), _type(type), _vertices(vertices),
+    _scale(1.0f, 1.0f), _need_update(false)
 {
   glGenVertexArrays(1, &_VAO);
   glBindVertexArray(_VAO);
@@ -53,31 +54,66 @@ void Shape::draw() const
 
 glm::mat4 Shape::get_transform() const
 {
+  if (_need_update) {
+    _transform = glm::mat4();
+    _transform = glm::translate(_transform, glm::vec3(_origin.x + _position.x, _origin.y + _position.y, 0.0f));
+    _transform = glm::rotate(_transform, _rotation, glm::vec3(0.0f, 0.0f , 1.0f));
+    _transform = glm::scale(_transform, glm::vec3(_scale.x, _scale.y, 1.0f));
+    _need_update = false;
+  }
   return _transform;
 }
 
 void Shape::reset_transform()
 {
+  _need_update = false;
   _transform = glm::mat4();
+}
+
+void Shape::set_origin(float x, float y)
+{
+  _need_update |= (x != _origin.x || y != _origin.y);
+  _origin.x = x;
+  _origin.y = y;
 }
 
 void Shape::set_position(float x, float y)
 {
-  _transform[3][0] = x;
-  _transform[3][1] = y;
+  _need_update |= (x != _position.x || y != _position.y);
+  _position.x = x;
+  _position.y = y;
+}
+
+void Shape::set_rotation(float angle)
+{
+  _need_update |= (angle != _rotation);
+  _rotation = angle;
 }
 
 void Shape::translate(float x, float y)
 {
-  _transform = glm::translate(_transform, glm::vec3(x, y, 0));
+  _need_update |= (x != 0 || y != 0);
+  _position.x += x;
+  _position.y += y;
 }
 
 void Shape::rotate(float angle)
 {
-  _transform = glm::rotate(_transform, angle, glm::vec3(0, 0, 1.0f));
+  _need_update |= (angle != 0);
+  _rotation += angle;
 }
 
 void Shape::scale(float x, float y)
 {
-  _transform = glm::scale(_transform, glm::vec3(x, y, 1.0f));
+  _need_update |= (x != 1 || y != 1);
+  _scale.x *= x;
+  _scale.y *= y;
 }
+
+void Shape::clamp_position(float xmin, float xmax, float ymin, float ymax)
+{
+  const float x = std::max(xmin, std::min(xmax, _position.x));
+  const float y = std::max(ymin, std::min(ymax, _position.y));
+  set_position(x, y);
+}
+

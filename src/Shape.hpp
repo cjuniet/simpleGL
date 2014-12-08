@@ -18,10 +18,16 @@ public:
   glm::mat4 get_transform() const;
   void reset_transform();
 
+  void set_origin(float x, float y);
   void set_position(float x, float y);
+  void set_rotation(float angle);
+  void set_scale(float x, float y);
+
   void translate(float x, float y);
-  void rotate(float a);
+  void rotate(float angle);
   void scale(float x, float y);
+
+  void clamp_position(float xmin, float xmax, float ymin, float ymax);
 
 private:
   GLuint _VAO;
@@ -31,5 +37,10 @@ private:
   std::vector<GLfloat> _vertices;
   GLsizei _nb_vertices;
 
-  glm::mat4 _transform;
+  glm::vec2 _origin;
+  glm::vec2 _position;
+  glm::vec2 _scale;
+  float _rotation;
+  mutable glm::mat4 _transform;
+  mutable bool _need_update;
 };
