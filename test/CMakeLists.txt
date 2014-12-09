@@ -7,12 +7,16 @@ if(NOT MSVC)
 endif()
 
 set(TEST_SOURCES
-  InitTest.cpp
-  SortByAngleTest.cpp ../src/Geometry.hpp ../src/Geometry.cpp
+  SortByAngleTest.cpp
+  IntersectTest.cpp
 )
 
-add_executable(test_driver ${TEST_SOURCES})
-target_link_libraries(test_driver gtest_main glfw ${GLFW_LIBRARIES})
-add_test(UnitTests test_driver)
+set(TEST_SOURCES ${TEST_SOURCES} ../src/Geometry.hpp ../src/Geometry.cpp)
 
-add_custom_target(check COMMAND test_driver --gtest_color=yes DEPENDS test_driver)
+add_executable(tests ${TEST_SOURCES})
+
+target_link_libraries(tests gtest_main)
+
+add_test(UnitTests tests)
+
+add_custom_target(check COMMAND tests --gtest_color=yes DEPENDS tests)

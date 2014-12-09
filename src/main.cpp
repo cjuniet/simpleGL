@@ -64,7 +64,7 @@ void main_loop(GLFWwindow* window)
   const float ratio = (float)width / height;
   const glm::mat4 proj_matrix = glm::ortho<float>(-ratio, ratio, -1, 1);
 
-  Shape shape1(GL_LINE_LOOP, Shape::VEC2_COL3, {
+  Shape shape1(GL_TRIANGLE_FAN, Shape::VEC2_COL3, {
     -0.2f, -0.2f, 0.0f, 0.0f, 1.0f,
      0.2f, -0.2f, 0.0f, 0.5f, 1.0f,
      0.2f,  0.2f, 0.5f, 0.5f, 1.0f,
@@ -73,26 +73,27 @@ void main_loop(GLFWwindow* window)
   shape1.set_position(0.5f, -0.25f);
   shape1.rotate(-0.25f);
 
-  Shape shape2(GL_LINE_LOOP, Shape::VEC2_COL3, {
+  Shape shape2(GL_TRIANGLE_FAN, Shape::VEC2_COL3, {
+     0.0f,  0.0f, 1.0f, 1.0f, 1.0f,
     -0.3f, -0.3f, 1.0f, 0.0f, 0.0f,
-    0.3f, -0.3f, 1.0f, 0.5f, 0.0f,
-    0.2f, 0.0f, 1.0f, 0.5f, 0.5f,
-    0.3f, 0.3f, 1.0f, 0.5f, 0.5f,
-    -0.3f, 0.3f, 1.0f, 0.0f, 0.5f,
-    -0.2f, 0.0f, 1.0f, 0.0f, 0.5f,
+     0.3f, -0.3f, 1.0f, 0.5f, 0.0f,
+     0.2f,  0.0f, 1.0f, 0.5f, 0.5f,
+     0.3f,  0.3f, 1.0f, 0.5f, 0.5f,
+    -0.3f,  0.3f, 1.0f, 0.0f, 0.5f,
+    -0.2f,  0.0f, 1.0f, 0.0f, 0.5f,
     -0.3f, -0.3f, 1.0f, 0.0f, 0.0f
   });
   shape2.set_position(-0.25f, 0.5f);
   shape2.rotate(0.5f);
 
-  Shape shape3(GL_LINE_LOOP, Shape::VEC2_COL3, {
+  Shape shape3(GL_TRIANGLE_FAN, Shape::VEC2_COL3, {
     -0.1f, -0.1f, 0.0f, 1.0f, 0.0f,
      0.0f, -0.125f, 0.5f, 1.0f, 0.0f,
      0.1f, -0.1f, 0.5f, 1.0f, 0.5f,
      0.125f, 0.0f, 0.0f, 1.0f, 0.5f,
-     0.1f,  0.1f, 0.0f, 1.0f, 0.5f,
-     0.0f,  0.125f, 0.5f, 1.0f, 0.5f,
-    -0.1f,  0.1f, 0.5f, 1.0f, 0.0f,
+     0.1f, 0.1f, 0.0f, 1.0f, 0.5f,
+     0.0f, 0.125f, 0.5f, 1.0f, 0.5f,
+    -0.1f, 0.1f, 0.5f, 1.0f, 0.0f,
     -0.125f, 0.0f, 0.0f, 1.0f, 0.0f
   });
   shape3.set_position(-0.5f, -0.75f);
@@ -131,6 +132,10 @@ void main_loop(GLFWwindow* window)
     const float dy = (float)(2.0 *(oldypos - ypos) / height);
     oldxpos = xpos; oldypos = ypos;
 
+    cursor.translate(dx, dy);
+    cursor.clamp_position(-ratio, ratio, -1.0f, 1.0f);
+    const glm::vec2 origin = cursor.get_world_vertices().front();
+
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
@@ -147,15 +152,19 @@ void main_loop(GLFWwindow* window)
     shape3.draw();
     shape_shader.detach();
 
-    const glm::vec2 origin = cursor.get_world_vertices().front();
     std::vector<glm::vec2> coords;
     coords.push_back(origin);
+    //coords.push_back(glm::vec2(-ratio, -1.0f));
+    //coords.push_back(glm::vec2(+ratio, -1.0f));
+    //coords.push_back(glm::vec2(-ratio, +1.0f));
+    //coords.push_back(glm::vec2(+ratio, +1.0f));
+
     std::vector<glm::vec2> v = shape1.get_world_vertices();
-    coords.insert(coords.end(), v.begin(), v.end());
-    v = shape2.get_world_vertices();
-    coords.insert(coords.end(), v.begin(), v.end());
-    v = shape3.get_world_vertices();
-    coords.insert(coords.end(), v.begin(), v.end());
+    for (const auto& p : v) {
+      glm::vec2 q = p;
+      geometry::intersect_seg_poly(origin, p, v, q); //XXX: won't work, must use vector<segment>
+      coords.push_back(q);
+    }
 
     geometry::sort_by_angle(origin, coords);
 
@@ -175,8 +184,6 @@ void main_loop(GLFWwindow* window)
     fillcolor_shader.detach();
 
     cursor_shader.attach();
-    cursor.translate(dx, dy);
-    cursor.clamp_position(-ratio, ratio, -1.0f, 1.0f);
     cursor_shader.set_uniform("model", cursor.get_transform());
     cursor.draw();
     cursor_shader.detach();
