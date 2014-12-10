@@ -51,7 +51,7 @@ TEST_F(IntersectTest, SegmentAndSelf)
   ASSERT_FALSE(geometry::intersect_seg_seg(a, b, a, b, p));
 }
 
-TEST_F(IntersectTest, SegmentAndSegmentInsideAligned)
+TEST_F(IntersectTest, SegmentAndSegmentOverlap)
 {
   glm::vec2 p;
   const glm::vec2 c(5, 5);
@@ -67,14 +67,6 @@ TEST_F(IntersectTest, SegmentAndSegmentOutside)
   ASSERT_FALSE(geometry::intersect_seg_seg(a, b, c, c, p));
 }
 
-TEST_F(IntersectTest, SegmentAndSegmentOutsideAligned)
-{
-  glm::vec2 p;
-  const glm::vec2 c(11, 11);
-  const glm::vec2 d(12, 12);
-  ASSERT_FALSE(geometry::intersect_seg_seg(a, b, c, d, p));
-}
-
 TEST_F(IntersectTest, SegmentAndSegmentIntersectMiddle)
 {
   glm::vec2 p;
@@ -85,13 +77,24 @@ TEST_F(IntersectTest, SegmentAndSegmentIntersectMiddle)
   ASSERT_EQ(q, p);
 }
 
+TEST_F(IntersectTest, SegmentAndSegmentIntersectOutside)
+{
+  glm::vec2 p;
+  const glm::vec2 c(0, 10);
+  const glm::vec2 d(4, 6);
+  ASSERT_FALSE(geometry::intersect_seg_seg(a, b, c, d, p));
+}
+
 TEST_F(IntersectTest, SegmentAndSegmentIntersectAtEnds)
 {
   glm::vec2 p;
   const glm::vec2 c1(-5, +5);
   const glm::vec2 d1(+5, -5);
-  ASSERT_FALSE(geometry::intersect_seg_seg(a, b, c1, d1, p));
+  ASSERT_TRUE(geometry::intersect_seg_seg(a, b, c1, d1, p));
+  ASSERT_EQ(a, p);
+
   const glm::vec2 c2(5, 15);
   const glm::vec2 d2(15, 5);
-  ASSERT_FALSE(geometry::intersect_seg_seg(a, b, c2, d2, p));
+  ASSERT_TRUE(geometry::intersect_seg_seg(a, b, c2, d2, p));
+  ASSERT_EQ(b, p);
 }

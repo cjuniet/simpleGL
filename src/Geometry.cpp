@@ -35,14 +35,40 @@ namespace geometry {
     return box_has_point(a, b, point) && orient2D(a, b, point) == 0;
   }
 
-  bool intersect_seg_seg(const glm::vec2& a, const glm::vec2& b, const glm::vec2& c, const glm::vec2& d, glm::vec2& point)
+  bool intersect_seg_seg(const glm::vec2& a, const glm::vec2& b,
+                         const glm::vec2& c, const glm::vec2& d,
+                         glm::vec2& point)
   {
     const float a1 = orient2D(a, b, c);
-    const float a2 = orient2D(a, b, d);    
+    const float a2 = orient2D(a, b, d);
+    if (a1 == 0 && a2 == 0) {
+      return false;
+    }
+    if (a1 == 0 && box_has_point(a, b, c)) {
+      point = c;
+      return true;
+    }
+    if (a2 == 0 && box_has_point(a, b, d)) {
+      point = d;
+      return true;
+    }
+
+    const float a3 = orient2D(c, d, a);
+    const float a4 = orient2D(c, d, b);
+    if (a3 == 0 && a4 == 0) {
+      return false;
+    }
+    if (a3 == 0 && box_has_point(c, d, a)) {
+      point = a;
+      return true;
+    }
+    if (a4 == 0 && box_has_point(c, d, b)) {
+      point = b;
+      return true;
+    }
+
     if (a1 * a2 < 0.0f) {
       // c and d are on different sides of ab
-      const float a3 = orient2D(c, d, a);
-      const float a4 = orient2D(c, d, b);
       if (a3 * a4 < 0.0f) {
         // a and b are on different sides of cd
         const float t = a3 / (a3 - a4);
@@ -53,29 +79,24 @@ namespace geometry {
     return false;
   }
 
-  bool intersect_seg_poly(const glm::vec2& a, const glm::vec2& b, const std::vector<glm::vec2>& vertices, glm::vec2& nearest)
+  bool intersect_seg_seg(const glm::vec2& a, const glm::vec2& b,
+                         const std::vector<segment2>& segments,
+                         glm::vec2& point, segment2& segment)
   {
     glm::vec2 p;
     bool found = false;
-    float min = std::numeric_limits<float>::infinity();
-    const int n = vertices.size() - 1;
-
-    for (int i = 0; i < n; ++i) {
-      if (intersect_seg_seg(a, b, vertices[i], vertices[i + 1], p)) {
+    float min = (point == a ? std::numeric_limits<float>::infinity() : glm::distance(a, point));
+    for (const auto& s : segments) {
+      if (intersect_seg_seg(a, b, s.first, s.second, p)) {
         const float d = glm::distance(a, p);
         if (d < min) {
           min = d;
-          nearest = p;
+          point = p;
+          segment = s;
           found = true;
         }
       }
     }
-    
-    if (intersect_seg_seg(a, b, vertices[n], vertices[0], p) && glm::distance(a, p) < min) {
-      nearest = p;
-      return true;
-    }
-
     return found;
   }
 }

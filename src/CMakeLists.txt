@@ -1,5 +1,5 @@
 if(MSVC)
-  add_definitions("/D_CRT_SECURE_NO_WARNINGS")
+  add_definitions("/D_CRT_SECURE_NO_WARNINGS /DNOMINMAX")
   set(CMAKE_EXE_LINKER_FLAGS "/SUBSYSTEM:WINDOWS /ENTRY:\"mainCRTStartup\"")
 else()
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++11")

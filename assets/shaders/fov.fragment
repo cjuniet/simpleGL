@@ -1,0 +1,14 @@
+#version 330 core
+
+in vec2 Position;
+
+out vec4 color;
+
+uniform vec2 origin;
+uniform vec4 lightcolor;
+
+void main()
+{
+    float d = 1.0 / (1.0 + distance(Position, origin));
+    color = vec4(d * lightcolor.rgb, 1);
+}

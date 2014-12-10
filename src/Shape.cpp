@@ -1,6 +1,7 @@
 #include "Shape.hpp"
 #include <glm/gtc/matrix_transform.hpp>
 #include <algorithm>
+#include <limits>
 
 namespace {
   size_t get_stride(Shape::Type type)
@@ -15,20 +16,28 @@ namespace {
 }
 
 Shape::Shape(GLenum mode, const std::vector<glm::vec2>& vertices)
-  : _mode(mode), _type(Type::VEC2),
-    _scale(1.0f, 1.0f), _rotation(0), _need_update(false)
+  : _mode(mode), _type(Type::VEC2), _scale(1.0f, 1.0f), _rotation(0),
+   _need_update(false), _segments_need_update(true)
 {
   _vertices.reserve(2 * vertices.size());
+  glm::vec2 bl(std::numeric_limits<float>::max(), std::numeric_limits<float>::max());;
+  glm::vec2 tr(std::numeric_limits<float>::min(), std::numeric_limits<float>::min());
   for (const auto& v : vertices) {
     _vertices.push_back(v.x);
     _vertices.push_back(v.y);
+    bl.x = std::min(bl.x, v.x);
+    tr.x = std::max(tr.x, v.x);
+    bl.y = std::min(bl.y, v.y);
+    tr.y = std::max(tr.y, v.y);
   }
+  _aabb.first = bl;
+  _aabb.second = tr;
   init_vao();
 }
 
 Shape::Shape(GLenum mode, Type type, const std::vector<GLfloat>& vertices)
-  : _mode(mode), _type(type), _vertices(vertices),
-    _scale(1.0f, 1.0f), _rotation(0), _need_update(false)
+  : _mode(mode), _type(type), _vertices(vertices), _scale(1.0f, 1.0f), _rotation(0),
+    _need_update(false), _segments_need_update(true)
 {
   init_vao();
 }
@@ -40,7 +49,7 @@ void Shape::init_vao()
 
   glGenBuffers(1, &_VBO);
   glBindBuffer(GL_ARRAY_BUFFER, _VBO);
-  glBufferData(GL_ARRAY_BUFFER, _vertices.size() * sizeof(GLfloat), _vertices.data(), GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, _vertices.size() * sizeof(GLfloat), _vertices.data(), GL_DYNAMIC_DRAW);
 
   switch (_type) {
     case Type::VEC2:
@@ -102,27 +111,18 @@ glm::mat4 Shape::get_transform() const
     _transform = glm::rotate(_transform, _rotation, glm::vec3(0.0f, 0.0f , 1.0f));
     _transform = glm::scale(_transform, glm::vec3(_scale.x, _scale.y, 1.0f));
     _need_update = false;
+    _segments_need_update = true;
   }
   return _transform;
 }
 
 void Shape::reset_transform()
 {
-  _need_update = false;
-  _transform = glm::mat4();
-}
-
-std::vector<glm::vec2> Shape::get_world_vertices() const
-{
-  std::vector<glm::vec2> vertices;
-  const glm::mat4 model = get_transform();
-  const size_t stride = get_stride(_type);
-  for (size_t i = 0; i < _vertices.size(); i += stride) {
-    glm::vec4 point(_vertices[i], _vertices[i+1], 0.0f, 1.0f);
-    point = model * point;
-    vertices.push_back(glm::vec2(point.x, point.y));
-  }
-  return vertices;
+  _need_update = true;
+  _origin.x = _origin.y = 0;
+  _position.x = _position.y = 0;
+  _rotation = 0;
+  _scale.x = _scale.y = 1;
 }
 
 void Shape::set_origin(float x, float y)
@@ -172,3 +172,31 @@ void Shape::clamp_position(float xmin, float xmax, float ymin, float ymax)
   set_position(x, y);
 }
 
+bool Shape::collide_segment(const glm::vec2& a, const glm::vec2& b,
+                            glm::vec2& point, geometry::segment2& segment) const
+{
+  const glm::mat4 model = get_transform();
+  if (_segments_need_update) {
+    glm::vec4 u = model * glm::vec4(_aabb.first.x, _aabb.first.y, 0.0f, 1.0f);
+    glm::vec4 v = model * glm::vec4(_aabb.second.x, _aabb.second.y, 0.0f, 1.0f);
+    _aabb.first = glm::vec2(u.x, u.y);
+    _aabb.second = glm::vec2(v.x, v.y);
+
+    const size_t stride = get_stride(_type);
+    const size_t n = _vertices.size() - stride;
+    _segments.clear();
+
+    for (size_t i = 0; i < n; i += stride) {
+      u = model * glm::vec4(_vertices[i], _vertices[i + 1], 0.0f, 1.0f);
+      v = model * glm::vec4(_vertices[i + stride], _vertices[i + stride + 1], 0.0f, 1.0f);
+      _segments.push_back({ glm::vec2(u.x, u.y), glm::vec2(v.x, v.y) });
+    }
+    u = model * glm::vec4(_vertices[n], _vertices[n + 1], 0.0f, 1.0f);
+    v = model * glm::vec4(_vertices[0], _vertices[1], 0.0f, 1.0f);
+    _segments.push_back({ glm::vec2(u.x, u.y), glm::vec2(v.x, v.y) });
+
+    _segments_need_update = false;
+  }
+
+  return geometry::intersect_seg_seg(a, b, _segments, point, segment);
+}

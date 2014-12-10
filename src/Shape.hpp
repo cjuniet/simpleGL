@@ -1,7 +1,9 @@
 #pragma once
 
+#include "Geometry.hpp"
 #include <glad/glad.h>
 #include <glm/glm.hpp>
+#include <utility>
 #include <vector>
 
 class Shape
@@ -12,6 +14,8 @@ public:
 public:
   Shape(GLenum mode, const std::vector<glm::vec2>& vertices);
   Shape(GLenum mode, Type type, const std::vector<GLfloat>& vertices);
+  Shape(const Shape&) = delete;
+  Shape& operator=(const Shape&) = delete;
   ~Shape();
 
   size_t nb_vertices() const;
@@ -21,8 +25,6 @@ public:
 
   glm::mat4 get_transform() const;
   void reset_transform();
-
-  std::vector<glm::vec2> get_world_vertices() const;
 
   void set_origin(float x, float y);
   void set_position(float x, float y);
@@ -34,6 +36,9 @@ public:
   void scale(float x, float y);
 
   void clamp_position(float xmin, float xmax, float ymin, float ymax);
+
+  bool collide_segment(const glm::vec2& a, const glm::vec2& b,
+                       glm::vec2& point, geometry::segment2& segment) const;
 
 private:
   void init_vao();
@@ -50,6 +55,11 @@ private:
   glm::vec2 _position;
   glm::vec2 _scale;
   float _rotation;
+
+private:
   mutable glm::mat4 _transform;
+  mutable geometry::segment2 _aabb;
+  mutable std::vector<geometry::segment2> _segments;
   mutable bool _need_update;
+  mutable bool _segments_need_update;
 };
