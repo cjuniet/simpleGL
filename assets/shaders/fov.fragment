@@ -10,5 +10,5 @@ uniform vec4 lightcolor;
 void main()
 {
     float d = 1.0 / (1.0 + distance(Position, origin));
-    color = vec4(d * lightcolor.rgb, 1);
+    color = vec4(d * lightcolor.rgb, lightcolor.a);
 }

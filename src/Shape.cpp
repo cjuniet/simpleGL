@@ -172,8 +172,7 @@ void Shape::clamp_position(float xmin, float xmax, float ymin, float ymax)
   set_position(x, y);
 }
 
-bool Shape::collide_segment(const glm::vec2& a, const glm::vec2& b,
-                            glm::vec2& point, geometry::segment2& segment) const
+const std::vector<geometry::segment2>& Shape::get_segments() const
 {
   const glm::mat4 model = get_transform();
   if (_segments_need_update) {
@@ -197,6 +196,11 @@ bool Shape::collide_segment(const glm::vec2& a, const glm::vec2& b,
 
     _segments_need_update = false;
   }
+  return _segments;
+}
 
-  return geometry::intersect_seg_seg(a, b, _segments, point, segment);
+bool Shape::collide_segment(const glm::vec2& a, const glm::vec2& b,
+                            glm::vec2& point, geometry::segment2& segment) const
+{
+  return geometry::intersect_seg_seg(a, b, get_segments(), point, segment);
 }

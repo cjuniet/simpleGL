@@ -37,6 +37,7 @@ public:
 
   void clamp_position(float xmin, float xmax, float ymin, float ymax);
 
+  const std::vector<geometry::segment2>& get_segments() const;
   bool collide_segment(const glm::vec2& a, const glm::vec2& b,
                        glm::vec2& point, geometry::segment2& segment) const;
 
