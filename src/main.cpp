@@ -236,14 +236,14 @@ void update_title(GLFWwindow* window, double frametime)
   ++frames;
   ftime += frametime;
   double now = glfwGetTime();
-  if (now - tlast > 1.0) {
+  if (now - tlast >= 1.0) {
     double fps = frames / (now - tlast);
     double tpf = 1000 * (ftime / frames);
     frames = 0;
     ftime = 0;
     tlast = now;
 
-    sprintf(title, "SimpleGL - fps=%d tpf=%dms", (int)fps, (int)tpf);
+    sprintf(title, "SimpleGL - fps=%.0f tpf=%.3fms", fps, tpf);
     glfwSetWindowTitle(window, title);
   }
 }

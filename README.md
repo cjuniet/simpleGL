@@ -10,5 +10,5 @@ Usage:
 
 Screenshot:
 
-![8b8d149](8b8d149.jpg)
+![screenshot](screenshot.jpg)
 
