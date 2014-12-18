@@ -7,14 +7,16 @@ namespace geometry {
   const float _PI = 3.14159265358979323846f;
   const float _2PI = 2 * _PI;
 
+  double angle2D(const glm::vec2& u, const glm::vec2& v)
+  {
+    const double a = std::atan2(v.y - u.y, v.x - u.x);
+    return (a < 0 ? a + _2PI : a);
+  }
+
   void sort_by_angle(const glm::vec2& origin, std::vector<glm::vec2>& vertices)
   {
     std::sort(vertices.begin(), vertices.end(), [origin] (const glm::vec2& lhs, const glm::vec2& rhs) {
-      float a = std::atan2f(lhs.y - origin.y, lhs.x - origin.x);
-      if (a < 0) a += _2PI;
-      float b = std::atan2f(rhs.y - origin.y, rhs.x - origin.x);
-      if (b < 0) b += _2PI;
-      return a < b;
+      return angle2D(origin, lhs) < angle2D(origin, rhs);
     });
   }
 

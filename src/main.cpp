@@ -33,6 +33,7 @@ int main(int argc, char* argv[])
   glfwWindowHint(GLFW_SAMPLES, 4);
 
   GLFWwindow* window = glfwCreateWindow(800, 600, "SimpleGL", nullptr, nullptr);
+  //GLFWwindow* window = glfwCreateWindow(1920, 1080, "SimpleGL", glfwGetPrimaryMonitor(), nullptr);
   if (!window) {
     glfwTerminate();
     return -1;
@@ -41,6 +42,7 @@ int main(int argc, char* argv[])
   glfwMakeContextCurrent(window);
   glfwSetKeyCallback(window, key_callback);
   glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+  glfwSwapInterval(1);
 
   if (!gladLoadGL()) {
     glfwTerminate();
@@ -163,27 +165,35 @@ void main_loop(GLFWwindow* window)
 
     std::vector<glm::vec2> fov_vertices = compute_fov(shapes, cursor_pos, ratio);
     const Shape fov(GL_TRIANGLE_FAN, fov_vertices);
-    fov_vertices = compute_fov(shapes, cursor_pos + glm::vec2(0.00f, 0.05f), ratio);
+
+    fov_vertices = compute_fov(shapes, cursor_pos + glm::vec2(0.00f, 0.025f), ratio);
     const Shape fovU(GL_TRIANGLE_FAN, fov_vertices);
-    fov_vertices = compute_fov(shapes, cursor_pos - glm::vec2(0.00f, 0.05f), ratio);
+    fov_vertices = compute_fov(shapes, cursor_pos + glm::vec2(0.00f, -0.025f), ratio);
     const Shape fovD(GL_TRIANGLE_FAN, fov_vertices);
-    fov_vertices = compute_fov(shapes, cursor_pos - glm::vec2(0.05f, 0.00f), ratio);
+    fov_vertices = compute_fov(shapes, cursor_pos + glm::vec2(-0.025f, 0.00f), ratio);
     const Shape fovL(GL_TRIANGLE_FAN, fov_vertices);
-    fov_vertices = compute_fov(shapes, cursor_pos + glm::vec2(0.05f, 0.00f), ratio);
+    fov_vertices = compute_fov(shapes, cursor_pos + glm::vec2(0.025f, 0.00f), ratio);
     const Shape fovR(GL_TRIANGLE_FAN, fov_vertices);
+
+    fov_vertices = compute_fov(shapes, cursor_pos + glm::vec2(0.025f, 0.025f), ratio);
+    const Shape fovUR(GL_TRIANGLE_FAN, fov_vertices);
+    fov_vertices = compute_fov(shapes, cursor_pos + glm::vec2(-0.025f, 0.025f), ratio);
+    const Shape fovUL(GL_TRIANGLE_FAN, fov_vertices);
+    fov_vertices = compute_fov(shapes, cursor_pos + glm::vec2(0.025f, -0.025f), ratio);
+    const Shape fovDR(GL_TRIANGLE_FAN, fov_vertices);
+    fov_vertices = compute_fov(shapes, cursor_pos + glm::vec2(-0.025f, 0.025f), ratio);
+    const Shape fovDL(GL_TRIANGLE_FAN, fov_vertices);
 
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
     fov_shader.attach();
     fov_shader.set_uniform("origin", cursor_pos);
-    fov_shader.set_uniform("lightcolor", glm::vec4(1.0f, 0.8f, 0.8f, 0.25f));
+    fov_shader.set_uniform("lightcolor", glm::vec4(1.0f, 0.8f, 0.8f, 0.125f));
     fov_shader.set_uniform("model", fov.get_transform());
     fov.draw();
-    fovU.draw();
-    fovD.draw();
-    fovL.draw();
-    fovR.draw();
+    fovU.draw(); fovD.draw(); fovL.draw(); fovR.draw();
+    fovUR.draw(); fovUL.draw(); fovDR.draw(); fovDL.draw();
 
     shape_shader.attach();
     for (auto s : shapes) {
@@ -198,6 +208,7 @@ void main_loop(GLFWwindow* window)
     frametime = glfwGetTime() - frametime;
 
     glfwSwapBuffers(window);
+
     update_title(window, frametime);
   }
 }
@@ -205,14 +216,26 @@ void main_loop(GLFWwindow* window)
 std::vector<glm::vec2> compute_fov(const std::vector<Shape*>& shapes,
                                    const glm::vec2& cursor_pos, float ratio)
 {
-  glm::vec2 last_point = cursor_pos;
+  std::vector<double> all_angles;
+  for (const auto& shape : shapes) {
+    for (const auto& segment : shape->get_segments()) {
+      all_angles.push_back(geometry::angle2D(cursor_pos, segment.first));
+      all_angles.push_back(geometry::angle2D(cursor_pos, segment.first) - 0.001f);
+      all_angles.push_back(geometry::angle2D(cursor_pos, segment.first) + 0.001f);
+    }
+  }
+  std::sort(all_angles.begin(), all_angles.end());
+  auto last = std::unique(all_angles.begin(), all_angles.end());
+  all_angles.erase(last, all_angles.end());
+
   std::vector<glm::vec2> fov_vertices;
+  glm::vec2 last_point = cursor_pos;
   geometry::segment2 last_segment;
-  for (float a = 0; a <= 6.283f; a += 0.001f) {
-    glm::vec2 ray(2 * ratio * glm::cos(a), 2 * ratio * glm::sin(a));
+  for (auto a : all_angles) {
     glm::vec2 point = cursor_pos;
+    glm::vec2 ray = point + glm::vec2(4 * glm::cos(a), 4 * glm::sin(a));
     geometry::segment2 segment;
-    for (auto s : shapes) {
+    for (const auto& s : shapes) {
       s->collide_segment(cursor_pos, ray, point, segment);
     }
     if (segment != last_segment) {
@@ -222,7 +245,7 @@ std::vector<glm::vec2> compute_fov(const std::vector<Shape*>& shapes,
     }
     last_point = point;
   }
-  fov_vertices.push_back(fov_vertices[1]);
+  fov_vertices.push_back(fov_vertices[1]); // close the loop
   return fov_vertices;
 }
 
@@ -238,7 +261,7 @@ void update_title(GLFWwindow* window, double frametime)
   double now = glfwGetTime();
   if (now - tlast >= 1.0) {
     double fps = frames / (now - tlast);
-    double tpf = 1000 * (ftime / frames);
+    double tpf = 1000 * ftime / frames;
     frames = 0;
     ftime = 0;
     tlast = now;
