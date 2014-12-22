@@ -20,6 +20,13 @@ namespace geometry {
 
   bool segment_has_point(const glm::vec2& a, const glm::vec2& b, const glm::vec2& point);
 
+  bool intersect_ray_seg(const glm::vec2& o, const glm::vec2& r,
+                         const glm::vec2& a, const glm::vec2& b,
+                         glm::vec2& point);
+  bool intersect_ray_seg(const glm::vec2& o, const glm::vec2& r,
+                         const std::vector<segment2>& segments,
+                         glm::vec2& point, segment2& segment);
+
   bool intersect_seg_seg(const glm::vec2& a, const glm::vec2& b,
                          const glm::vec2& c, const glm::vec2& d,
                          glm::vec2& point);

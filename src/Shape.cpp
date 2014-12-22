@@ -199,6 +199,12 @@ const std::vector<geometry::segment2>& Shape::get_segments() const
   return _segments;
 }
 
+bool Shape::collide_ray(const glm::vec2& o, const glm::vec2& r,
+                        glm::vec2& point, geometry::segment2& segment) const
+{
+  return geometry::intersect_ray_seg(o, r, get_segments(), point, segment);
+}
+
 bool Shape::collide_segment(const glm::vec2& a, const glm::vec2& b,
                             glm::vec2& point, geometry::segment2& segment) const
 {

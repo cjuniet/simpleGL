@@ -1,13 +1,6 @@
 #include <gtest/gtest.h>
 #include "Geometry.hpp"
 #include <algorithm>
-#include <iostream>
-
-namespace glm {
-  ::std::ostream& operator<<(::std::ostream& os, const glm::vec2& v) {
-    return os << "(" << v.x << "," << v.y << ")";
-  }
-}
 
 bool Vec2Pred(const glm::vec2& lhs, const glm::vec2& rhs) {
   return (lhs.x == rhs.x ? lhs.y < rhs.y : lhs.x < rhs.x);

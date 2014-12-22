@@ -45,6 +45,38 @@ TEST_F(IntersectTest, SegmentAndPointOutsideAligned)
   ASSERT_FALSE(geometry::segment_has_point(a, b, d));
 }
 
+TEST_F(IntersectTest, RayAndSelf)
+{
+  glm::vec2 p;
+  ASSERT_FALSE(geometry::intersect_ray_seg(a, b, a, b, p));
+}
+
+TEST_F(IntersectTest, RayAndSegmentOutside)
+{
+  glm::vec2 p;
+  const glm::vec2 o(7, 3);
+  const glm::vec2 r(1, 1);
+  ASSERT_FALSE(geometry::intersect_ray_seg(o, r, a, b, p));
+}
+
+TEST_F(IntersectTest, RayAndSegmentIntersect)
+{
+  glm::vec2 p;
+  const glm::vec2 o(7, 3);
+  const glm::vec2 r(-1, 1);
+  const glm::vec2 q(5, 5);
+  ASSERT_TRUE(geometry::intersect_ray_seg(o, r, a, b, p));
+  ASSERT_EQ(q, p);
+}
+
+TEST_F(IntersectTest, RayAndSegmentInside)
+{
+  glm::vec2 p;
+  const glm::vec2 o(5, 5);
+  const glm::vec2 r(1, 1);
+  ASSERT_FALSE(geometry::intersect_ray_seg(o, r, a, b, p));
+}
+
 TEST_F(IntersectTest, SegmentAndSelf)
 {
   glm::vec2 p;

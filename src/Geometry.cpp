@@ -37,6 +37,54 @@ namespace geometry {
     return box_has_point(a, b, point) && orient2D(a, b, point) == 0;
   }
 
+  bool intersect_ray_seg(const glm::vec2& o, const glm::vec2& r,
+                         const glm::vec2& a, const glm::vec2& b,
+                         glm::vec2& point)
+  {
+    const glm::vec2 u = a - o;
+    const glm::vec2 v = b - o;
+    const glm::vec2 w = v - u;
+
+    // Solve p = a + lambda * (b - a)
+    const float l_n = r.x * u.y - r.y * u.x;
+    const float l_d = r.y * w.x - r.x * w.y;
+
+    // Must have 0 < lambda < 1
+    const bool lt0 = (l_n < 0 ? l_d > 0 : l_d < 0);
+    const bool gt1 = (l_d >= 0 ? l_n > l_d : l_n < l_d);
+    if (lt0 || gt1) return false;
+
+    // Solve p = mu * r
+    const float mu = (u.y * v.x - u.x * v.y);
+    // Must have mu > 0
+    const bool gt0 = (l_d > 0 ? mu > 0 : mu < 0);
+    if (!gt0) return false;
+
+    point = o + mu / l_d * r;
+    return true;
+  }
+
+  bool intersect_ray_seg(const glm::vec2& o, const glm::vec2& r,
+                         const std::vector<segment2>& segments,
+                         glm::vec2& point, segment2& segment)
+  {
+    glm::vec2 p;
+    bool found = false;
+    float min = (point == o ? std::numeric_limits<float>::infinity() : glm::distance(o, point));
+    for (const auto& s : segments) {
+      if (intersect_ray_seg(o, r, s.first, s.second, p)) {
+        const float d = glm::distance(o, p);
+        if (d < min) {
+          min = d;
+          point = p;
+          segment = s;
+          found = true;
+        }
+      }
+    }
+    return found;
+  }
+
   bool intersect_seg_seg(const glm::vec2& a, const glm::vec2& b,
                          const glm::vec2& c, const glm::vec2& d,
                          glm::vec2& point)

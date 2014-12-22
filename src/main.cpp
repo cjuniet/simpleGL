@@ -14,12 +14,11 @@
 bool g_rotation = false;
 bool g_wireframe = false;
 
-void update_title(GLFWwindow* window, double frametime);
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void main_loop(GLFWwindow* window);
 std::vector<glm::vec2> compute_fov(const std::vector<Shape*>& shapes,
-                                   const glm::vec2& cursor_pos,
-                                   float ratio);
+                                   const glm::vec2& cursor_pos);
+void update_title(GLFWwindow* window, double frametime);
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 
 int main(int argc, char* argv[])
 {
@@ -32,7 +31,7 @@ int main(int argc, char* argv[])
   glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
   glfwWindowHint(GLFW_SAMPLES, 4);
 
-  GLFWwindow* window = glfwCreateWindow(800, 600, "SimpleGL", nullptr, nullptr);
+  GLFWwindow* window = glfwCreateWindow(1280, 720, "SimpleGL", nullptr, nullptr);
   //GLFWwindow* window = glfwCreateWindow(1920, 1080, "SimpleGL", glfwGetPrimaryMonitor(), nullptr);
   if (!window) {
     glfwTerminate();
@@ -163,25 +162,25 @@ void main_loop(GLFWwindow* window)
       shape3.rotate(0.03f);
     }
 
-    std::vector<glm::vec2> fov_vertices = compute_fov(shapes, cursor_pos, ratio);
+    std::vector<glm::vec2> fov_vertices = compute_fov(shapes, cursor_pos);
     const Shape fov(GL_TRIANGLE_FAN, fov_vertices);
 
-    fov_vertices = compute_fov(shapes, cursor_pos + glm::vec2(0.00f, 0.025f), ratio);
+    fov_vertices = compute_fov(shapes, cursor_pos + glm::vec2(0.00f, 0.025f));
     const Shape fovU(GL_TRIANGLE_FAN, fov_vertices);
-    fov_vertices = compute_fov(shapes, cursor_pos + glm::vec2(0.00f, -0.025f), ratio);
+    fov_vertices = compute_fov(shapes, cursor_pos + glm::vec2(0.00f, -0.025f));
     const Shape fovD(GL_TRIANGLE_FAN, fov_vertices);
-    fov_vertices = compute_fov(shapes, cursor_pos + glm::vec2(-0.025f, 0.00f), ratio);
+    fov_vertices = compute_fov(shapes, cursor_pos + glm::vec2(-0.025f, 0.00f));
     const Shape fovL(GL_TRIANGLE_FAN, fov_vertices);
-    fov_vertices = compute_fov(shapes, cursor_pos + glm::vec2(0.025f, 0.00f), ratio);
+    fov_vertices = compute_fov(shapes, cursor_pos + glm::vec2(0.025f, 0.00f));
     const Shape fovR(GL_TRIANGLE_FAN, fov_vertices);
 
-    fov_vertices = compute_fov(shapes, cursor_pos + glm::vec2(0.025f, 0.025f), ratio);
+    fov_vertices = compute_fov(shapes, cursor_pos + glm::vec2(0.025f, 0.025f));
     const Shape fovUR(GL_TRIANGLE_FAN, fov_vertices);
-    fov_vertices = compute_fov(shapes, cursor_pos + glm::vec2(-0.025f, 0.025f), ratio);
+    fov_vertices = compute_fov(shapes, cursor_pos + glm::vec2(-0.025f, 0.025f));
     const Shape fovUL(GL_TRIANGLE_FAN, fov_vertices);
-    fov_vertices = compute_fov(shapes, cursor_pos + glm::vec2(0.025f, -0.025f), ratio);
+    fov_vertices = compute_fov(shapes, cursor_pos + glm::vec2(0.025f, -0.025f));
     const Shape fovDR(GL_TRIANGLE_FAN, fov_vertices);
-    fov_vertices = compute_fov(shapes, cursor_pos + glm::vec2(-0.025f, 0.025f), ratio);
+    fov_vertices = compute_fov(shapes, cursor_pos + glm::vec2(-0.025f, 0.025f));
     const Shape fovDL(GL_TRIANGLE_FAN, fov_vertices);
 
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -214,7 +213,7 @@ void main_loop(GLFWwindow* window)
 }
 
 std::vector<glm::vec2> compute_fov(const std::vector<Shape*>& shapes,
-                                   const glm::vec2& cursor_pos, float ratio)
+                                   const glm::vec2& cursor_pos)
 {
   std::vector<float> all_angles;
   for (const auto& shape : shapes) {
@@ -231,11 +230,11 @@ std::vector<glm::vec2> compute_fov(const std::vector<Shape*>& shapes,
   glm::vec2 last_point = cursor_pos;
   geometry::segment2 last_segment;
   for (auto a : all_angles) {
-    const glm::vec2 ray(cursor_pos.x + 4 * glm::cos(a), cursor_pos.y + 4 * glm::sin(a));
+    const glm::vec2 ray(glm::cos(a), glm::sin(a));
     glm::vec2 point = cursor_pos;
     geometry::segment2 segment;
     for (const auto& s : shapes) {
-      s->collide_segment(cursor_pos, ray, point, segment);
+      s->collide_ray(cursor_pos, ray, point, segment);
     }
     if (segment != last_segment) {
       fov_vertices.push_back(last_point);
