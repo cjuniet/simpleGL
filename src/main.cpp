@@ -66,6 +66,9 @@ void main_loop(GLFWwindow* window)
   glfwGetFramebufferSize(window, &width, &height);
   glViewport(0, 0, width, height);
 
+  glEnable(GL_STENCIL_TEST);
+  glStencilOp(GL_KEEP, GL_REPLACE, GL_REPLACE);
+
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -91,7 +94,7 @@ void main_loop(GLFWwindow* window)
     -0.2f,  0.2f, 0.5f, 0.0f, 1.0f
   });
   shape1.set_position(0.5f, -0.25f);
-  shape1.rotate(-0.25f);
+  shape1.rotate(0.25f);
   shapes.push_back(&shape1);
 
   Shape shape2(GL_TRIANGLE_FAN, Shape::VEC2_COL3, {
@@ -105,7 +108,7 @@ void main_loop(GLFWwindow* window)
     -0.3f, -0.3f, 1.0f, 0.0f, 0.0f
   });
   shape2.set_position(-0.25f, 0.5f);
-  shape2.rotate(0.5f);
+  shape2.rotate(-0.25f);
   shapes.push_back(&shape2);
 
   Shape shape3(GL_TRIANGLE_FAN, Shape::VEC2_COL3, {
@@ -184,7 +187,10 @@ void main_loop(GLFWwindow* window)
     const Shape fovDL(GL_TRIANGLE_FAN, fov_vertices);
 
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+    glStencilFunc(GL_ALWAYS, 1, 0xFF);
+    glStencilMask(0xFF);
 
     fov_shader.attach();
     fov_shader.set_uniform("origin", cursor_pos);
@@ -194,11 +200,19 @@ void main_loop(GLFWwindow* window)
     fovU.draw(); fovD.draw(); fovL.draw(); fovR.draw();
     fovUR.draw(); fovUL.draw(); fovDR.draw(); fovDL.draw();
 
+    glStencilFunc(GL_EQUAL, 1, 0xFF);
+    glStencilMask(0x00);
+
     shape_shader.attach();
     for (auto s : shapes) {
+      s->scale(1.01f, 1.01f);
       shape_shader.set_uniform("model", s->get_transform());
       s->draw();
+      s->set_scale(1.0f, 1.0f);
     }
+
+    glStencilFunc(GL_ALWAYS, 1, 0xFF);
+    glStencilMask(0xFF);
 
     cursor_shader.attach();
     cursor_shader.set_uniform("model", cursor.get_transform());
@@ -219,9 +233,9 @@ std::vector<glm::vec2> compute_fov(const std::vector<Shape*>& shapes,
   for (const auto& shape : shapes) {
     for (const auto& segment : shape->get_segments()) {
       const float a = geometry::angle2D(cursor_pos, segment.first);
-      all_angles.push_back(a - 0.001f);
+      all_angles.push_back(a - 0.0001f);
       all_angles.push_back(a);
-      all_angles.push_back(a + 0.001f);
+      all_angles.push_back(a + 0.0001f);
     }
   }
   std::sort(all_angles.begin(), all_angles.end());

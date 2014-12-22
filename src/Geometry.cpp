@@ -50,7 +50,7 @@ namespace geometry {
     const float l_d = r.y * w.x - r.x * w.y;
 
     // Must have 0 < lambda < 1
-    const bool lt0 = (l_n < 0 ? l_d > 0 : l_d < 0);
+    const bool lt0 = (l_n >= 0 ? l_d <= 0 : l_d >= 0);
     const bool gt1 = (l_d >= 0 ? l_n > l_d : l_n < l_d);
     if (lt0 || gt1) return false;
 

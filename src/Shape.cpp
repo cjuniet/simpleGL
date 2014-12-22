@@ -145,6 +145,13 @@ void Shape::set_rotation(float angle)
   _rotation = angle;
 }
 
+void Shape::set_scale(float x, float y)
+{
+  _need_update |= (x != _scale.x || y != _scale.y);
+  _scale.x = x;
+  _scale.y = y;
+}
+
 void Shape::translate(float x, float y)
 {
   _need_update |= (x != 0 || y != 0);
