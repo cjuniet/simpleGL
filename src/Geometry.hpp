@@ -7,7 +7,7 @@ namespace geometry {
   using segment2 = std::pair<glm::vec2, glm::vec2>;
 
   // sort by angle from 0 to 2*PI around origin
-  double angle2D(const glm::vec2& u, const glm::vec2& v);
+  float angle2D(const glm::vec2& u, const glm::vec2& v);
   void sort_by_angle(const glm::vec2& origin, std::vector<glm::vec2>& vertices);
 
   // orient2D returns:

@@ -7,9 +7,9 @@ namespace geometry {
   const float _PI = 3.14159265358979323846f;
   const float _2PI = 2 * _PI;
 
-  double angle2D(const glm::vec2& u, const glm::vec2& v)
+  float angle2D(const glm::vec2& u, const glm::vec2& v)
   {
-    const double a = std::atan2(v.y - u.y, v.x - u.x);
+    const float a = std::atan2f(v.y - u.y, v.x - u.x);
     return (a < 0 ? a + _2PI : a);
   }
 

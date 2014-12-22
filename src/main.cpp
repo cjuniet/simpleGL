@@ -149,7 +149,7 @@ void main_loop(GLFWwindow* window)
     double frametime = glfwGetTime();
 
     const float dx = (float)(2.0 * (xpos - oldxpos) / width);
-    const float dy = (float)(2.0 *(oldypos - ypos) / height);
+    const float dy = (float)(2.0 * (oldypos - ypos) / height);
     oldxpos = xpos; oldypos = ypos;
 
     cursor.translate(dx, dy);
@@ -216,24 +216,23 @@ void main_loop(GLFWwindow* window)
 std::vector<glm::vec2> compute_fov(const std::vector<Shape*>& shapes,
                                    const glm::vec2& cursor_pos, float ratio)
 {
-  std::vector<double> all_angles;
+  std::vector<float> all_angles;
   for (const auto& shape : shapes) {
     for (const auto& segment : shape->get_segments()) {
-      all_angles.push_back(geometry::angle2D(cursor_pos, segment.first));
-      all_angles.push_back(geometry::angle2D(cursor_pos, segment.first) - 0.001f);
-      all_angles.push_back(geometry::angle2D(cursor_pos, segment.first) + 0.001f);
+      const float a = geometry::angle2D(cursor_pos, segment.first);
+      all_angles.push_back(a - 0.001f);
+      all_angles.push_back(a);
+      all_angles.push_back(a + 0.001f);
     }
   }
   std::sort(all_angles.begin(), all_angles.end());
-  auto last = std::unique(all_angles.begin(), all_angles.end());
-  all_angles.erase(last, all_angles.end());
 
   std::vector<glm::vec2> fov_vertices;
   glm::vec2 last_point = cursor_pos;
   geometry::segment2 last_segment;
   for (auto a : all_angles) {
+    const glm::vec2 ray(cursor_pos.x + 4 * glm::cos(a), cursor_pos.y + 4 * glm::sin(a));
     glm::vec2 point = cursor_pos;
-    glm::vec2 ray = point + glm::vec2(4 * glm::cos(a), 4 * glm::sin(a));
     geometry::segment2 segment;
     for (const auto& s : shapes) {
       s->collide_segment(cursor_pos, ray, point, segment);
