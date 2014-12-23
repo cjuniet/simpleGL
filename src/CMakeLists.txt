@@ -10,6 +10,7 @@ endif()
 set(SOURCES
   main.cpp
   Geometry.hpp Geometry.cpp
+  ParticleSystem.hpp ParticleSystem.cpp
   Shader.hpp Shader.cpp
   Shape.hpp Shape.cpp
 )
