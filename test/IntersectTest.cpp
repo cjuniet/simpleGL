@@ -77,6 +77,25 @@ TEST_F(IntersectTest, RayAndSegmentInside)
   ASSERT_FALSE(geometry::intersect_ray_seg(o, r, a, b, p));
 }
 
+TEST_F(IntersectTest, RayAndSegmentAtEnds)
+{
+  glm::vec2 p;
+  glm::vec2 o(-1, 1);
+  glm::vec2 r(0.1f, -0.1f);
+  ASSERT_TRUE(geometry::intersect_ray_seg(o, r, a, b, p));
+  ASSERT_EQ(a, p);
+
+  o = glm::vec2(1, -1);
+  r = glm::vec2(-0.1f, 0.1f);
+  ASSERT_TRUE(geometry::intersect_ray_seg(o, r, a, b, p));
+  ASSERT_EQ(a, p);
+
+  o = glm::vec2(-1, -1);
+  r = glm::vec2(0.1f, 0.1f);
+  ASSERT_TRUE(geometry::intersect_ray_seg(o, r, a, b, p));
+  ASSERT_EQ(a, p);
+}
+
 TEST_F(IntersectTest, SegmentAndSelf)
 {
   glm::vec2 p;

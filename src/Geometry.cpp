@@ -44,23 +44,32 @@ namespace geometry {
     const glm::vec2 u = a - o;
     const glm::vec2 v = b - o;
     const glm::vec2 w = v - u;
+    const float epsilon = 0.00001f;
 
     // Solve p = a + lambda * (b - a)
-    const float l_n = r.x * u.y - r.y * u.x;
+    float l_n = r.x * u.y - r.y * u.x;
+    if (fabs(l_n) < epsilon) l_n = 0;
     const float l_d = r.y * w.x - r.x * w.y;
 
-    // Must have 0 < lambda < 1
-    const bool lt0 = (l_n >= 0 ? l_d <= 0 : l_d >= 0);
-    const bool gt1 = (l_d >= 0 ? l_n > l_d : l_n < l_d);
+    // Must have 0 <= lambda <= 1
+    const bool lt0 = (l_d > 0 ? l_n < 0 : l_n > 0);
+    const bool gt1 = (l_d > 0 ? l_n > l_d : l_n < l_d);
     if (lt0 || gt1) return false;
 
     // Solve p = mu * r
-    const float mu = (u.y * v.x - u.x * v.y);
     // Must have mu > 0
-    const bool gt0 = (l_d > 0 ? mu > 0 : mu < 0);
-    if (!gt0) return false;
+    float mu = 0;
+    if (l_d == 0) {
+      mu = (r.x == 0 ? u.y / r.y : u.x / r.x);
+      if (mu <= 0) return false;
+    } else {
+      mu = (u.y * v.x - u.x * v.y);
+      const bool gt0 = (l_d > 0 ? mu > 0 : mu < 0);
+      if (!gt0) return false;
+      mu /= l_d;
+    }
 
-    point = o + mu / l_d * r;
+    point = o + mu * r;
     return true;
   }
 
