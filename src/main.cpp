@@ -14,6 +14,7 @@
 
 bool g_reset = true;
 bool g_pause = false;
+bool g_step = false;
 bool g_wireframe = false;
 
 void main_loop(GLFWwindow* window);
@@ -133,7 +134,10 @@ void main_loop(GLFWwindow* window)
     //cursor_shader.set_uniform("model", cursor.get_transform());
     //cursor.draw();
 
-    if (!g_pause) ps.step();
+    if (!g_pause || g_step) {
+      ps.step();
+    }
+
     frametime = glfwGetTime() - frametime;
 
     glfwSwapBuffers(window);
@@ -179,7 +183,11 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     g_pause = !g_pause;
   }
 
-  if (key == GLFW_KEY_SPACE && action == GLFW_PRESS && action != GLFW_REPEAT) {
+  if (key == GLFW_KEY_S) {
+    g_step = (action != GLFW_RELEASE);
+  }
+
+  if (key == GLFW_KEY_R && action == GLFW_PRESS && action != GLFW_REPEAT) {
     g_reset = true;
   }
 }

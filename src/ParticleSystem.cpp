@@ -90,7 +90,7 @@ void ParticleSystem::verlet_integration()
 
 void ParticleSystem::satisfy_constraints()
 {
-  for (int iter = 0; iter < 3; ++iter) {
+  for (int iter = 0; iter < 5; ++iter) {
     // stay inside the box
     for (size_t i = 0; i < _nb_particles; ++i) {
       glm::vec2& pos = _positions[i];
@@ -102,10 +102,15 @@ void ParticleSystem::satisfy_constraints()
     for (const auto& c : _constraints) {
       const glm::vec2 d = _positions[c.second] - _positions[c.first];
       const float len = glm::length(d);
-      float diff = (len - c.rest_length) / (len + 0.001f);
-      diff = (diff < 0 ? std::max(diff, -c.rest_length / 10.0f) : std::min(diff, c.rest_length / 10.0f));
-      _positions[c.first] += 0.5f * diff * d;
-      _positions[c.second] -= 0.5f * diff * d;
+      if (len < 0.001f) {
+        _positions[c.first] += 0.01f;
+        _positions[c.second] -= 0.01f;
+      } else {
+        float diff = (len - c.rest_length) / len;
+        diff = (diff < 0 ? std::max(diff, -c.rest_length / 10.0f) : std::min(diff, c.rest_length / 10.0f));
+        _positions[c.first] += 0.5f * diff * d;
+        _positions[c.second] -= 0.5f * diff * d;
+      }
     }
   }
 }
