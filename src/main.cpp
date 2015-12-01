@@ -31,7 +31,7 @@ int main(int argc, char* argv[])
   glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
   glfwWindowHint(GLFW_SAMPLES, 4);
 
-  GLFWwindow* window = glfwCreateWindow(800, 800, "SimpleGL", nullptr, nullptr);
+  GLFWwindow* window = glfwCreateWindow(800, 600, "SimpleGL", nullptr, nullptr);
   //GLFWwindow* window = glfwCreateWindow(1920, 1080, "SimpleGL", glfwGetPrimaryMonitor(), nullptr);
   if (!window) {
     glfwTerminate();

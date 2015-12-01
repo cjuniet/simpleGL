@@ -7,7 +7,7 @@ Constraint::Constraint(int f, int s, float l)
 {}
 
 ParticleSystem::ParticleSystem(const glm::vec2& min, const glm::vec2& max)
-  : _timestep(0.005f), _nb_particles(0), _gravity(0, -9.81f), _min(min), _max(max)
+  : _timestep(0.005f), _nb_particles(0), _gravity(0, -4.81f), _min(min), _max(max)
 {}
 
 void ParticleSystem::read(const std::string& filename)
@@ -91,19 +91,21 @@ void ParticleSystem::verlet_integration()
 void ParticleSystem::satisfy_constraints()
 {
   for (int iter = 0; iter < 3; ++iter) {
-    for (const auto& c : _constraints) {
-      const glm::vec2 d = _positions[c.second] - _positions[c.first];
-      const float len = glm::length(d);
-      const float diff = (len - c.rest_length) / len;
-      _positions[c.first] += 0.5f * diff * d;
-      _positions[c.second] -= 0.5f * diff * d;
-    }
-
     // stay inside the box
     for (size_t i = 0; i < _nb_particles; ++i) {
       glm::vec2& pos = _positions[i];
       pos.x = std::max(_min.x, std::min(_max.x, pos.x));
       pos.y = std::max(_min.y, std::min(_max.y, pos.y));
+    }
+
+    // relax constraints
+    for (const auto& c : _constraints) {
+      const glm::vec2 d = _positions[c.second] - _positions[c.first];
+      const float len = glm::length(d);
+      float diff = (len - c.rest_length) / (len + 0.001f);
+      diff = (diff < 0 ? std::max(diff, -c.rest_length / 10.0f) : std::min(diff, c.rest_length / 10.0f));
+      _positions[c.first] += 0.5f * diff * d;
+      _positions[c.second] -= 0.5f * diff * d;
     }
   }
 }
